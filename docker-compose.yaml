@@ -1,65 +1,24 @@
 version: '3.8'
 
 services:
-  # MongoDB Database
   mongodb:
     image: mongo:5.0
     container_name: icecream-mongodb
-    restart: unless-stopped
     environment:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: password
-      MONGO_INITDB_DATABASE: icecream
     ports:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
-      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
-    networks:
-      - icecream-network
 
-  # IceCream Application
   icecream-app:
-    build: 
-      context: .
-      dockerfile: Dockerfile
-    container_name: icecream-container
+    build: .
+    container_name: icecream-app
     ports:
       - "3000:3000"
-    environment:
-      - NODE_ENV=production
-    restart: unless-stopped
     depends_on:
       - mongodb
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-    networks:
-      - icecream-network
-
-  # Optional: MongoDB Express (Web UI for MongoDB)
-  mongo-express:
-    image: mongo-express:latest
-    container_name: icecream-mongo-express
-    restart: unless-stopped
-    ports:
-      - "8081:8081"
-    environment:
-      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
-      ME_CONFIG_MONGODB_ADMINPASSWORD: password
-      ME_CONFIG_MONGODB_URL: mongodb://admin:password@mongodb:27017/
-    depends_on:
-      - mongodb
-    networks:
-      - icecream-network
-
-networks:
-  icecream-network:
-    driver: bridge
 
 volumes:
   mongodb_data:
-    driver: local
