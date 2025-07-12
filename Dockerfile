@@ -1,8 +1,8 @@
-# Use official Node.js runtime as base image
-FROM node:18-alpine
+# Use official Node.js runtime as base image (full version, not alpine)
+FROM node:18
 
 # Install curl for health checks
-RUN apk add --no-cache curl
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 # Set working directory in container
 WORKDIR /usr/src/app
@@ -10,15 +10,15 @@ WORKDIR /usr/src/app
 # Copy package.json and package-lock.json (if available)
 COPY package*.json ./
 
-# Install dependencies (including devDependencies for nodemon)
+# Clear npm cache and install dependencies
+RUN npm cache clean --force
 RUN npm install
 
 # Copy application code
 COPY . .
 
 # Create non-root user for security
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nodejs -u 1001
+RUN groupadd -r nodejs && useradd -r -g nodejs nodejs
 
 # Change ownership of the app directory to nodejs user
 RUN chown -R nodejs:nodejs /usr/src/app
