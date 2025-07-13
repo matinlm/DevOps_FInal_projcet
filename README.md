@@ -1,5 +1,4 @@
 # IceCream
-# test
 
 Monitoring of our Cooling Systems arround the world!
 
