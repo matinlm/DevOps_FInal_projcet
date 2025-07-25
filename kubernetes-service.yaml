@@ -4,6 +4,7 @@ metadata:
   name: icecream-app-service
   labels:
     app: icecream-app
+    component: frontend
 spec:
   type: NodePort
   selector:
@@ -11,8 +12,10 @@ spec:
   ports:
   - port: 3000
     targetPort: 3000
-    nodePort: 30000  # External access port
+    nodePort: 30000  # External access port for Minikube
     protocol: TCP
+    name: http
+  sessionAffinity: None  # Allow load balancing across all pods
 ---
 apiVersion: v1
 kind: Service
@@ -20,6 +23,7 @@ metadata:
   name: mongodb-service
   labels:
     app: mongodb
+    component: database
 spec:
   selector:
     app: mongodb
@@ -27,4 +31,23 @@ spec:
   - port: 27017
     targetPort: 27017
     protocol: TCP
-  type: ClusterIP  # Internal service only
+    name: mongodb
+  type: ClusterIP  # Internal service only - not exposed externally
+---
+# Optional: LoadBalancer service for external access (alternative to NodePort)
+apiVersion: v1
+kind: Service
+metadata:
+  name: icecream-app-loadbalancer
+  labels:
+    app: icecream-app
+    component: frontend
+spec:
+  type: LoadBalancer
+  selector:
+    app: icecream-app
+  ports:
+  - port: 80
+    targetPort: 3000
+    protocol: TCP
+    name: http

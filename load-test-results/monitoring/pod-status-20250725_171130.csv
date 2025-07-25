@@ -1,0 +1,4 @@
+timestamp,pod_name,status,ready,restarts,age,cpu_usage,memory_usage
+2025-07-25 17:11:39,icecream-app-86dcb99784-dndhb,Running,1/1,5,(21h,N/A,
+2025-07-25 17:11:39,icecream-app-86dcb99784-hd5r2,Running,1/1,3,(21h,N/A,
+2025-07-25 17:11:39,icecream-app-86dcb99784-kt8hq,Running,1/1,6,(21h,N/A,

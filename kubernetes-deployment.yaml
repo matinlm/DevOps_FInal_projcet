@@ -5,8 +5,9 @@ metadata:
   labels:
     app: icecream-app
     version: v1
+    component: frontend
 spec:
-  replicas: 1
+  replicas: 3  # Increased for better load distribution
   selector:
     matchLabels:
       app: icecream-app
@@ -15,6 +16,7 @@ spec:
       labels:
         app: icecream-app
         version: v1
+        component: frontend
     spec:
       containers:
       - name: icecream-app
@@ -22,12 +24,15 @@ spec:
         imagePullPolicy: Never  # For local Minikube testing
         ports:
         - containerPort: 3000
+          name: http
         env:
         - name: PORT
           value: "3000"
         - name: HOSTNAME
           value: "0.0.0.0"
-        # MongoDB connection will use the config.js file settings
+        - name: NODE_ENV
+          value: "production"
+        # Resource limits for production readiness
         resources:
           requests:
             memory: "256Mi"
@@ -35,6 +40,7 @@ spec:
           limits:
             memory: "512Mi"
             cpu: "500m"
+        # Readiness probe - checks if app is ready to serve traffic
         readinessProbe:
           httpGet:
             path: /
@@ -43,6 +49,8 @@ spec:
           periodSeconds: 10
           timeoutSeconds: 5
           failureThreshold: 5
+          successThreshold: 1
+        # Liveness probe - checks if container is still running
         livenessProbe:
           httpGet:
             path: /
@@ -51,6 +59,22 @@ spec:
           periodSeconds: 20
           timeoutSeconds: 5
           failureThreshold: 3
+        # Startup probe - gives more time for initial startup
+        startupProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 10
+      # Restart policy for fault tolerance
+      restartPolicy: Always
+      # Security context for production
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 2000
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -58,8 +82,9 @@ metadata:
   name: mongodb
   labels:
     app: mongodb
+    component: database
 spec:
-  replicas: 1
+  replicas: 1  # MongoDB should typically run as single instance
   selector:
     matchLabels:
       app: mongodb
@@ -67,12 +92,14 @@ spec:
     metadata:
       labels:
         app: mongodb
+        component: database
     spec:
       containers:
       - name: mongodb
         image: mongo:5.0
         ports:
         - containerPort: 27017
+          name: mongodb
         env:
         - name: MONGO_INITDB_ROOT_USERNAME
           value: "admin"
@@ -85,9 +112,32 @@ spec:
           limits:
             memory: "1Gi"
             cpu: "500m"
+        # Volume mount for data persistence
         volumeMounts:
         - name: mongodb-data
           mountPath: /data/db
+        # MongoDB health checks
+        livenessProbe:
+          exec:
+            command:
+            - mongo
+            - --eval
+            - "db.adminCommand('ping')"
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          exec:
+            command:
+            - mongo
+            - --eval
+            - "db.adminCommand('ping')"
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
       volumes:
       - name: mongodb-data
         emptyDir: {}  # For development - use PersistentVolume in production
+      restartPolicy: Always

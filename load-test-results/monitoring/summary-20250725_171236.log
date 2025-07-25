@@ -1,0 +1,17 @@
+=== IceCream Load Test Monitoring Summary ===
+Generated: Fri, Jul 25, 2025  5:28:05 PM
+Duration: Started at 20250725_171236
+
+=== Pod Statistics ===
+Total monitoring records: 4
+Resource monitoring records: 2
+
+=== Key Observations ===
+Maximum pod restarts observed: 6
+Pod failure events: 0
+0
+=== Files Generated ===
+Pod status log: load-test-results/monitoring/pod-status-20250725_171236.csv
+Resource usage log: load-test-results/monitoring/resource-usage-20250725_171236.csv
+Events log: load-test-results/monitoring/events-20250725_171236.log
+Application log: load-test-results/monitoring/application-20250725_171236.log

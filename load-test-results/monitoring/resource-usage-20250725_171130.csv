@@ -1,0 +1,2 @@
+timestamp,total_pods,ready_pods,pending_pods,failed_pods,total_cpu,total_memory,node_cpu,node_memory
+2025-07-25 17:11:44,3,3,0,0,m,Mi,,
